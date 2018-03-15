@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<title></title>
+	<link rel="stylesheet" href="">
+	<style type="text/css">
+		#video{
+			width: 400px;
+			height: 300px;
+			border: 1px solid;
+		}
+		#canvas{
+			border: 1px solid;
+		}
+		img{
+			width: 300px;
+		}
+	</style>
+</head>
+<body>
+	<div id="main">
+		<video id="video"></video>
+		<canvas width="400" height="300" id="canvas"></canvas>
+		<button id="button">拍照</button>
+	</div>
+</body>
+</html>
+<script type="text/javascript">
+	var video = document.getElementById('video');
+	var canvas = document.querySelector('canvas');
+  	var ctx = canvas.getContext('2d');
+  	var localMediaStream = null;
+	function hasUserMedia() {
+	    navigator.getUserMedia = navigator.getUserMedia ||
+	        navigator.webkitGetUserMedia ||
+	        navigator.mozGetUserMedia ||
+	        navigator.msGetUserMedia;
+	    return !!navigator.getUserMedia;
+	}
+	function hasRTCPeerConnection() {
+	    window.RTCPeerConnection = window.RTCPeerConnection ||
+	        window.webkitRTCPeerConnection ||
+	        window.mozRTCPeerConnection ||
+	        window.msRTCPeerConnection;
+	    return !!window.RTCPeerConnection;
+	}
+
+
+	
+	// 灰色
+	function grayscale (pixels) {
+
+		var d = pixels.data;
+
+	    for (var i = 0; i < d.length; i += 4) {
+	      	var r = d[i];
+	      	var g = d[i + 1];
+	      	var b = d[i + 2];
+	      	d[i] = d[i + 1] = d[i + 2] = (r+g+b)/3;
+	    }
+
+    	return pixels;
+
+	};
+
+	
+
+
+	function success (stream){
+		console.log(stream.getVideoTracks())
+		console.log(stream)
+		if (window.URL) {
+		    video.src = window.URL.createObjectURL(stream);
+		} else {
+			video.src = stream;
+		}
+		localMediaStream = stream;
+		video.autoplay = true;
+	}
+
+	function error (err){
+		console.log(err)
+	}
+
+
+	if (hasUserMedia) {
+		navigator.getUserMedia({
+			video: true
+		}, success, error)
+	}
+
+	document.getElementById('button').onclick = function(){
+		if (localMediaStream) {
+			ctx.drawImage(video, 0, 0);
+			var img = document.createElement('img');
+			img.src = canvas.toDataURL('image/png');
+			document.getElementById('main').appendChild(img)
+
+			var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+			console.log(imageData)
+			grayscale(imageData)
+			ctx.putImageData(imageData, 0, 0);
+		}
+	}
+
+</script>
